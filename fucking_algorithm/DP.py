@@ -194,5 +194,108 @@ W = 4
 wt = [2, 1, 3]
 val = [4, 2, 3]
 
-knapsack(W,N,wt,val)
+# knapsack(W,N,wt,val)
 
+
+#怎么将二维动态规划压缩成一维动态规划吗？这就是状态压缩，很容易的，本文也会提及这种技巧。
+'''
+给定一个只包含正整数的非空数组。是否可以将这个数组分割成两个子集，使得两个子集的元素和相等。
+注意:
+每个数组中的元素不会超过 100
+数组的大小不会超过 200
+示例 1:
+
+输入: [1, 5, 11, 5]
+
+输出: true
+
+解释: 数组可以分割成 [1, 5, 5] 和 [11].
+1
+2
+3
+4
+5
+输入: [1, 2, 3, 5]
+
+输出: false
+
+解释: 数组不能分割成两个元素和相等的子集.
+'''
+
+#那么对于这个问题，我们可以先对集合求和，得出 sum，把问题转化为背包问题：
+#给一个可装载重量为 sum / 2 的背包和 N 个物品，每个物品的重量为 nums[i]。现在让你装物品，是否存在一种装法，能够恰好将背包装满？
+'''
+第一步要明确两点，「状态」和「选择」。
+状态就是「背包的容量」和「可选择的物品」，选择就是「装进背包」或者「不装进背包」。
+第二步要明确 dp 数组的定义。
+我们想求的最终答案就是 dp[N][sum/2]，
+base case 就是 dp[..][0] = true 和 dp[0][..] = false，因为背包没有空间的时候，就相当于装满了，而当没有物品可选择的时候，肯定没办法装满背包。
+第三步，根据「选择」，思考状态转移的逻辑。
+如果不把 nums[i] 算入子集，或者说你不把这第 i 个物品装入背包，那么是否能够恰好装满背包，取决于上一个状态 dp[i-1][j]，继承之前的结果。
+如果把 nums[i] 算入子集，或者说你把这第 i 个物品装入了背包，那么是否能够恰好装满背包，取决于状态 dp[i - 1][j-nums[i-1]]。
+dp[i][j] = dp[i - 1][j] | dp[i - 1][j-nums[i-1]]
+'''
+#参考之前的代码我们可以类似得出如下python:
+
+
+def canPartition(nums):
+    sums = sum(nums)
+    if sums % 2 != 0: #和为奇数时，不可能划分成两个和相等的集合
+        return False
+    n = len(nums)
+    m = sums//2
+    # print("n=%s" % n)
+    # print("m=%s" % m)
+    dp = [([False] *(m+1)) for i in range(n+1)] #注意n和m的顺序，n行m列，n在外
+    # print(dp)
+    #base case
+    for i in range(0,n+1):
+        dp[i][0] = True
+    for i in range(1,n+1):
+        for j in range(1,m+1):
+            print("i=%s" % i)
+            print("j=%s" % j)
+            if j-nums[i-1]<0: # 背包容量不足，不能装入第 i 个物品
+                dp[i][j] = dp[i-1][j]
+            else:
+                dp[i][j] = dp[i-1][j] | dp[i-1][j-nums[i-1]]
+    print(dp)
+    return dp[n][m]
+
+
+input = [1, 5, 11, 5]
+# canPartition(input)
+
+
+'''
+
+进行状态压缩
+
+再进一步，是否可以优化这个代码呢？注意到 dp[i][j] 都是通过上一行 dp[i-1][..] 转移过来的，之前的数据都不会再使用了。
+
+所以，我们可以进行状态压缩，将二维 dp 数组压缩为一维
+
+'''
+
+
+def zipCanPartition(nums):
+    sums = sum(nums)
+    if sums % 2 != 0: #和为奇数时，不可能划分成两个和相等的集合
+        return False
+    n = len(nums)
+    m = sums//2
+    dp = [False] * (m + 1)
+    dp[0] = True
+    for i in range(0,n):
+        j_list = range(0,m)
+        for j in j_list[::-1]:
+            print("i=%s" % i)
+            print("j=%s" % j)
+            if j - nums[i] >= 0:
+                dp[j] = dp[j] | dp[j-nums[i]]
+    print(dp)
+    return dp[m]
+
+
+input = [1, 5, 11, 5]
+zipCanPartition(input)
