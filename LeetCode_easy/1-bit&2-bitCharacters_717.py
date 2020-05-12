@@ -49,3 +49,10 @@ if __name__ == "__main__":
     result = solution.is_one_bit_character(input)
     print(result)
 
+    # 生成位数为n的0-1随机数组方法如下
+    import random
+    n = 10
+    list = [random.randint(0,1) for i in range(n-1)]
+    list.append(0)
+    print(list)
+
